@@ -1,0 +1,51 @@
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS cinemas(
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    name VARCHAR(32) NOT NULL,
+    column_group INT[] NOT NULL,
+    disabled_seat VARCHAR(4)[],
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
+);
+CREATE TABLE IF NOT EXISTS movies(
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    synopsis VARCHAR(255) NOT NULL,
+    poster VARCHAR(255),
+    duration INT,
+    release_date TIMESTAMPTZ,
+    taken_off_date TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS screens(
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    cinema_id UUID CONSTRAINT fk_screens_cinema_id REFERENCES cinemas(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    movie_id UUID CONSTRAINT fk_screens_movie_id REFERENCES movies(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    started_at TIMESTAMPTZ NOT NULL,
+    finished_at TIMESTAMPTZ NOT NULL,
+    occupancy VARCHAR(4)[],
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS orders(
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    screen_id UUID CONSTRAINT fk_orders_screen_id REFERENCES screens(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    name VARCHAR(32) NOT NULL,
+    seats VARCHAR(4)[] NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
+);
+
+
+-- +migrate Down
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS screens;
+DROP TABLE IF EXISTS movies;
+DROP TABLE IF EXISTS cinemas;
