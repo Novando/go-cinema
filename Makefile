@@ -7,5 +7,5 @@ unmigrate:
 unmigrate-all:
 	sql-migrate down -config ./config/sql-migrate.yml -env migration --limit 0
 
-coba:
-	pwd
+seed:
+	sql-migrate up -config ./config/sql-migrate.yml -env seed

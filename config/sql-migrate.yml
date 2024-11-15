@@ -2,3 +2,9 @@ migration:
   dialect: postgres
   datasource: dbname=${DB_NAME} sslmode=disable user=${DB_USER} password=${DB_PASS} host=${DB_HOST}
   dir: ./db/pg/migration
+
+seed:
+  dialect: postgres
+  datasource: dbname=${DB_NAME} sslmode=disable user=${DB_USER} password=${DB_PASS} host=${DB_HOST}
+  dir: ./db/pg/seed
+  table: gorp_seeds

@@ -2,7 +2,8 @@
 CREATE TABLE IF NOT EXISTS cinemas(
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR(32) NOT NULL,
-    column_group INT[] NOT NULL,
+    column_group SMALLINT[] NOT NULL,
+    number_of_row SMALLINT NOT NULL,
     disabled_seat VARCHAR(4)[],
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -11,9 +12,9 @@ CREATE TABLE IF NOT EXISTS cinemas(
 CREATE TABLE IF NOT EXISTS movies(
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    synopsis VARCHAR(255) NOT NULL,
-    poster VARCHAR(255),
-    duration INT,
+    synopsis VARCHAR(1024) NOT NULL,
+    poster VARCHAR(1024),
+    duration SMALLINT,
     release_date TIMESTAMPTZ,
     taken_off_date TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
