@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"github.com/rs/zerolog"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
 	"os"
 	"path"
@@ -105,7 +106,8 @@ func newRollingFile(config Config) io.Writer {
 // Call the singleton function
 func Call() *Logger {
 	if instance == nil {
-		panic("logger not initialized, Call InitZerolog() first.")
+		fmt.Println("logger not initialized, Call InitZerolog() first.")
+		return nil
 	}
 	return instance
 }
