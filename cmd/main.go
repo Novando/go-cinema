@@ -1,11 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/novando/go-cinema/internal/reservation"
 	"github.com/novando/go-cinema/pkg/db/pg"
 	"github.com/novando/go-cinema/pkg/env"
 	"github.com/novando/go-cinema/pkg/logger"
 	"github.com/spf13/viper"
+	"os"
 )
 
 func main() {
@@ -36,5 +41,30 @@ func main() {
 		panic(err.Error())
 	}
 
-	reservation.Init(db)
+	// init App
+	app := fiber.New(fiber.Config{
+		AppName:   os.Getenv("APP_NAME"),
+		BodyLimit: 8 * 15 * 1024 * 1024,
+	})
+	v := app.Group("/v1")
+
+	// healtcheck
+	v.Use(healthcheck.New(healthcheck.Config{
+		LivenessEndpoint: "/healtz",
+		LivenessProbe: func(_ *fiber.Ctx) bool {
+			return true
+		},
+	}))
+
+	// config cors
+	//v.Use(cors.New(cors.Config{
+	//	AllowOrigins: strings.Join(cfgParams.CorsList, ","),
+	//}))
+	v.Use(cors.New())
+
+	reservation.Init(v, db)
+
+	if err = app.Listen(":" + fmt.Sprintf("%v", viper.GetInt("app.port"))); err != nil {
+		logger.Call().Fatalf(err.Error())
+	}
 }

@@ -118,7 +118,12 @@ func (l *Logger) Errorf(format string, a ...interface{}) {
 	l.serviceLogger.Error().Caller().Msgf(errs.Error())
 }
 
-// Infof Print log message with format
+// Warnf print formatter warn message
+func (l *Logger) Warnf(format string, a ...interface{}) {
+	l.serviceLogger.Warn().Msgf(format, a...)
+}
+
+// Infof print formated info message
 func (l *Logger) Infof(format string, a ...interface{}) {
 	l.serviceLogger.Info().Msgf(format, a...)
 }

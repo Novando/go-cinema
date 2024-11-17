@@ -13,49 +13,50 @@ type PGTX struct {
 }
 
 // BeginTx start transaction mode
-func (q *PG) BeginTx() (pgx.Tx, error) {
+func (q *PG) BeginTx(c context.Context) (PGTX, error) {
 	if viper.GetBool("db.pg.logging") {
 		logger.Call().Infof("Transaction start")
 	}
-	return q.db.BeginTx(context.Background(), pgx.TxOptions{})
+	tx, err := q.db.BeginTx(c, pgx.TxOptions{})
+	return PGTX{tx}, err
 }
 
 // Exec execute transaction without returning any rows
-func (q *PGTX) Exec(sql string, arg ...any) (pgconn.CommandTag, error) {
+func (q *PGTX) Exec(c context.Context, sql string, arg ...any) (pgconn.CommandTag, error) {
 	if viper.GetBool("db.pg.logging") {
 		logger.Call().Infof("Exec: %v Arguments: %v", sql, arg)
 	}
-	return q.db.Exec(context.Background(), sql, arg)
+	return q.db.Exec(c, sql, arg...)
 }
 
 // Query execute transaction, returning single row or an error
-func (q *PGTX) Query(sql string, arg ...any) (pgx.Rows, error) {
+func (q *PGTX) Query(c context.Context, sql string, arg ...any) (pgx.Rows, error) {
 	if viper.GetBool("db.pg.logging") {
-		logger.Call().Infof("Query): %v Arguments: %v", sql, arg)
+		logger.Call().Infof("Query: %v Arguments: %v", sql, arg)
 	}
-	return q.db.Query(context.Background(), sql, arg)
+	return q.db.Query(c, sql, arg...)
 }
 
 // QueryRow execute transaction, returning 0 or multiple rows
-func (q *PGTX) QueryRow(sql string, arg ...any) pgx.Row {
+func (q *PGTX) QueryRow(c context.Context, sql string, arg ...any) pgx.Row {
 	if viper.GetBool("db.pg.logging") {
-		logger.Call().Infof("QueryRow): %v Arguments: %v", sql, arg)
+		logger.Call().Infof("QueryRow: %v Arguments: %v", sql, arg)
 	}
-	return q.db.QueryRow(context.Background(), sql, arg)
+	return q.db.QueryRow(c, sql, arg...)
 }
 
 // Rollback cancel the transaction
-func (q *PGTX) Rollback() error {
+func (q *PGTX) Rollback(c context.Context) error {
 	if viper.GetBool("db.pg.logging") {
 		logger.Call().Infof("Rollingback transaction")
 	}
-	return q.db.Rollback(context.Background())
+	return q.db.Rollback(c)
 }
 
 // Commit proceed the transaction
-func (q *PGTX) Commit() error {
+func (q *PGTX) Commit(c context.Context) error {
 	if viper.GetBool("db.pg.logging") {
 		logger.Call().Infof("Commiting transaction")
 	}
-	return q.db.Commit(context.Background())
+	return q.db.Commit(c)
 }
