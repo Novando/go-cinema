@@ -10,7 +10,6 @@ import (
 	"github.com/novando/go-cinema/pkg/env"
 	"github.com/novando/go-cinema/pkg/logger"
 	"github.com/spf13/viper"
-	"os"
 )
 
 func main() {
@@ -43,7 +42,7 @@ func main() {
 
 	// init App
 	app := fiber.New(fiber.Config{
-		AppName:   os.Getenv("APP_NAME"),
+		AppName:   viper.GetString("app.name"),
 		BodyLimit: 8 * 15 * 1024 * 1024,
 	})
 	v := app.Group("/v1")

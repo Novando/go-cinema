@@ -16,4 +16,5 @@ func Init(r fiber.Router, db *pg.PG) {
 	rc := controller.NewReservation(rs)
 	r.Get("/now-playing", rc.GetNowPlaying)
 	r.Get("/generate", rc.GenerateScreen)
+	r.Get("/screen", rc.GetScreens)
 }
