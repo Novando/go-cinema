@@ -17,4 +17,6 @@ func Init(r fiber.Router, db *pg.PG) {
 	r.Get("/now-playing", rc.GetNowPlaying)
 	r.Get("/generate", rc.GenerateScreen)
 	r.Get("/screen", rc.GetScreens)
+	r.Get("/order", rc.GetOrders)
+	r.Post("/order", rc.Book)
 }

@@ -37,8 +37,17 @@ type ScreenDAO struct {
 	StartedAt time.Time   `json:"startedAt"`
 }
 
-type OrderDAO struct {
+type OrderSimpleDAO struct {
 	Price float64
 	Start time.Time
 	ID    pgtype.UUID
+}
+
+type OrderDAO struct {
+	Price   float64     `json:"price"`
+	OrderBy string      `json:"orderBy"`
+	Title   string      `json:"title"`
+	Seats   []string    `json:"seats"`
+	Start   time.Time   `json:"start"`
+	ID      pgtype.UUID `json:"id"`
 }

@@ -227,7 +227,7 @@ func (r *Reservation) GenerateScreen() error {
 	return insertTimetables(ctx, tx, newTimetable)
 }
 
-func (r *Reservation) Book(arg BookParams) (res OrderDAO, err error) {
+func (r *Reservation) Book(arg BookParams) (res OrderSimpleDAO, err error) {
 	ctx := context.Background()
 	tx, err := r.db.BeginTx(ctx)
 	if err != nil {
@@ -254,14 +254,14 @@ func (r *Reservation) Book(arg BookParams) (res OrderDAO, err error) {
 		}
 	}
 	rowOrder := tx.QueryRow(ctx, `-- ReservationBookSeat
-		INSERT INTO orders (screen_id, name, seats, price) VALUES ($1::UUID, $2::TEXT, ARRAY $3) RETURNING id
+		INSERT INTO orders (screen_id, name, seats, price) VALUES ($1::UUID, $2::TEXT, $3, $4::FLOAT) RETURNING id
 	`, arg.ScreenID, arg.Name, arg.Seats, arg.Price)
 	if err = rowOrder.Scan(&res.ID); err != nil {
 		return
 	}
 	_, err = tx.Exec(ctx, `-- ReservationBookUpdateOccupancies
-		UPDATE screens SET occupancies = ARRAY $2 WHERE id = $1::UUID
-	`, append(occupancies, arg.Seats...))
+		UPDATE screens SET occupancy = $2 WHERE id = $1::UUID
+	`, arg.ScreenID, append(occupancies, arg.Seats...))
 	res.Price = arg.Price
 	return
 }
@@ -323,4 +323,34 @@ func (r *Reservation) UpdateOrderPrice(id pgtype.UUID, price float64) error {
 		UPDATE orders SET price = $2::FLOAT WHERE id = $1::UUID
 	`, id, price)
 	return err
+}
+
+func (r *Reservation) GetOrdered() (res []OrderDAO, err error) {
+	rows, err := r.db.Query(`-- ReservationGetOrdered
+		SELECT o.id, o.price, o.name, m.title, started_at, seats FROM orders o
+		LEFT JOIN screens s ON s.id = o.screen_id
+		LEFT JOIN movies m ON m.id = s.movie_id
+		WHERE o.deleted_at IS NULL
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var i OrderDAO
+		if err = rows.Scan(
+			&i.ID,
+			&i.Price,
+			&i.OrderBy,
+			&i.Title,
+			&i.Start,
+			&i.Seats,
+		); err != nil {
+			return
+		}
+		res = append(res, i)
+	}
+	err = rows.Err()
+	return
 }

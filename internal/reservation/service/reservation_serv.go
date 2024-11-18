@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/novando/go-cinema/internal/reservation/repository"
@@ -99,21 +100,40 @@ func (s *Reservation) Book(arg BookRequestDTO) (res dto.StdService) {
 		return
 	}
 
-	var rd repository.OrderDAO
+	var rd repository.OrderSimpleDAO
 	rd, res.Err = s.reservationRepo.Book(repository.BookParams{
 		ScreenID: sid,
 		Seats:    arg.Seats,
 		Name:     arg.Name,
-		Price:    40000,
+		Price:    float64(40000 * len(arg.Seats)),
 	})
 	if res.Err != nil {
+		logger.Call().Errorf(res.Err.Error())
 		res.Code = fiber.StatusInternalServerError
 		return
 	}
 	if !slices.Contains([]time.Weekday{time.Sunday, time.Saturday}, rd.Start.Weekday()) {
 		return
 	}
-	res.Code = fiber.StatusInternalServerError
-	res.Err = s.reservationRepo.UpdateOrderPrice(rd.ID, rd.Price)
+	res.Err = s.reservationRepo.UpdateOrderPrice(rd.ID, float64(60000*len(arg.Seats)))
+	if res.Err != nil {
+		logger.Call().Errorf(res.Err.Error())
+		res.Code = fiber.StatusInternalServerError
+		return
+	}
+	res.Data = fmt.Sprintf("%x", rd.ID.Bytes)
+	return
+}
+
+func (s *Reservation) GetOrders() (res dto.StdService) {
+	res.Code = fiber.StatusOK
+	var rd []repository.OrderDAO
+	rd, res.Err = s.reservationRepo.GetOrdered()
+	if res.Err != nil {
+		logger.Call().Errorf(res.Err.Error())
+		res.Code = fiber.StatusInternalServerError
+		return
+	}
+	res.Data = helper.CreateListResponse(uint64(len(rd)), rd)
 	return
 }
