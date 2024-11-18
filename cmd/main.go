@@ -59,7 +59,9 @@ func main() {
 	//v.Use(cors.New(cors.Config{
 	//	AllowOrigins: strings.Join(cfgParams.CorsList, ","),
 	//}))
-	v.Use(cors.New())
+	v.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+	}))
 
 	reservation.Init(v, db)
 

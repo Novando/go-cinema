@@ -80,11 +80,10 @@ func (s *Reservation) GetScreenList(arg ScreenRequestDTO) (res dto.StdService) {
 		res.Code = fiber.StatusInternalServerError
 		return
 	}
-	logger.Call().Infof("%v", len(rd))
-	for _, i := range rd {
-		i.Price = 40000
-		if slices.Contains([]time.Weekday{time.Sunday, time.Saturday}, i.StartedAt.Weekday()) {
-			i.Price = 60000
+	for i := range rd {
+		rd[i].Price = 40000
+		if slices.Contains([]time.Weekday{time.Sunday, time.Saturday}, rd[i].StartedAt.Weekday()) {
+			rd[i].Price = 60000
 		}
 	}
 	res.Data = helper.CreateListResponse(uint64(len(rd)), rd)
