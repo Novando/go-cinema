@@ -6,16 +6,16 @@ import (
 )
 
 type PaginationData struct {
-	Total  uint64          `json:"total"`
-	Keys   []string        `json:"keys"`
-	Values [][]interface{} `json:"values"`
+	Total  uint64   `json:"total"`
+	Keys   []string `json:"keys"`
+	Values any      `json:"values"`
 }
 
 func CreateListResponse(tot uint64, obj interface{}, l ...*logger.Logger) PaginationData {
 	emptyList := PaginationData{
 		Total:  0,
 		Keys:   []string{},
-		Values: [][]interface{}{},
+		Values: [][]string{},
 	}
 	log := logger.Call()
 	if len(l) > 0 {
@@ -55,6 +55,7 @@ func CreateListResponse(tot uint64, obj interface{}, l ...*logger.Logger) Pagina
 
 	// Extract values from each struct in the slice
 	v := reflect.ValueOf(obj)
+	var rv any
 	var values [][]interface{}
 	for i := 0; i < v.Len(); i++ {
 		var row []interface{}
@@ -64,5 +65,10 @@ func CreateListResponse(tot uint64, obj interface{}, l ...*logger.Logger) Pagina
 		}
 		values = append(values, row)
 	}
-	return PaginationData{Total: tot, Keys: keys, Values: values}
+	if values == nil {
+		rv = [][]string{}
+	} else {
+		rv = values
+	}
+	return PaginationData{Total: tot, Keys: keys, Values: rv}
 }

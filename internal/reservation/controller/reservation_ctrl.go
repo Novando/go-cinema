@@ -63,7 +63,7 @@ func (c *Reservation) Book(ctx *fiber.Ctx) error {
 }
 
 func (c *Reservation) GetOrders(ctx *fiber.Ctx) error {
-	apiKey := ctx.Get("api-key")
+	apiKey := ctx.Get("x-api-key")
 	if apiKey == "" {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(dto.StdResponse{Message: "ACCESS_DENIED"})
 	}
@@ -93,10 +93,10 @@ func (c *Reservation) Login(ctx *fiber.Ctx) error {
 	if p.User != value.ADMIN_USER || p.Pass != value.ADMIN_PASS {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(dto.StdResponse{Message: "ACCESS_DENIED"})
 	}
-	res, err := bcrypt.GenerateFromPassword([]byte(p.Pass), 16)
+	res, err := bcrypt.GenerateFromPassword([]byte(p.Pass), 10)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(dto.StdResponse{Message: "PARAM_INVALID"})
 
 	}
-	return ctx.Status(fiber.StatusOK).JSON(dto.StdResponse{Message: "LOGGED_IN", Data: res})
+	return ctx.Status(fiber.StatusOK).JSON(dto.StdResponse{Message: "LOGGED_IN", Data: string(res)})
 }

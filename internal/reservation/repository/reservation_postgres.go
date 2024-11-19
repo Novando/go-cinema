@@ -241,10 +241,10 @@ func (r *Reservation) Book(arg BookParams) (res OrderSimpleDAO, err error) {
 		}
 	}()
 	rowOccupancies := tx.QueryRow(ctx, `-- ReservationBookGetFilled
-		SELECT occupancy, started_at FROM screens WHERE id = $1::UUID AND deleted_at IS NULL
+		SELECT occupancy, started_at, movie_id FROM screens WHERE id = $1::UUID AND deleted_at IS NULL
 	`, arg.ScreenID)
 	var occupancies []string
-	if err = rowOccupancies.Scan(&occupancies, &res.Start); err != nil && err.Error() != pgx.ErrNoRows.Error() {
+	if err = rowOccupancies.Scan(&occupancies, &res.Start, &res.MovieID); err != nil && err.Error() != pgx.ErrNoRows.Error() {
 		return
 	}
 	for _, seat := range arg.Seats {
@@ -295,6 +295,7 @@ func (r *Reservation) GetScreenList(mid pgtype.UUID, start time.Time) (res []Scr
 		FROM screens s
 		LEFT JOIN cinemas c ON c.id = s.cinema_id
 		WHERE s.movie_id = $1::UUID AND started_at::DATE = $2::DATE AND s.deleted_at IS NULL
+		ORDER BY started_at ASC
 	`, mid, start)
 
 	if err != nil {
@@ -331,7 +332,7 @@ func (r *Reservation) GetOrdered() (res []OrderDAO, err error) {
 		LEFT JOIN screens s ON s.id = o.screen_id
 		LEFT JOIN movies m ON m.id = s.movie_id
 		WHERE o.deleted_at IS NULL
-		ORDER BY created_at DESC
+		ORDER BY o.created_at DESC
 	`)
 	if err != nil {
 		return
@@ -352,5 +353,15 @@ func (r *Reservation) GetOrdered() (res []OrderDAO, err error) {
 		res = append(res, i)
 	}
 	err = rows.Err()
+	return
+}
+
+func (r *Reservation) GetMovieNameByID(id pgtype.UUID) (res string) {
+	row := r.db.QueryRow(`-- ReservationGetMovieNameByID
+		SELECT title FROM movies WHERE id = $1::UUID AND deleted_at IS NULL
+	`, id)
+	if err := row.Scan(&res); err != nil {
+		res = ""
+	}
 	return
 }

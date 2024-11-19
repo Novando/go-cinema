@@ -38,9 +38,10 @@ type ScreenDAO struct {
 }
 
 type OrderSimpleDAO struct {
-	Price float64
-	Start time.Time
-	ID    pgtype.UUID
+	Price   float64
+	Start   time.Time
+	MovieID pgtype.UUID
+	ID      pgtype.UUID
 }
 
 type OrderDAO struct {
