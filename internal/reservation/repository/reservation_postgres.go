@@ -30,9 +30,9 @@ type movieDuration struct {
 func get7DaysMovies(ctx context.Context, tx pg.PGTX) (res []movieDuration, err error) {
 	rows, err := tx.Query(ctx, `-- ReservationGet7DaysMovie
 		SELECT id, duration FROM movies
-		WHERE release_date < DATE_ADD(NOW(), '1 day')
+		WHERE release_date < (NOW() + '1 day'::INTERVAL)
 			AND deleted_at IS NULL
-			AND (taken_off_date IS NULL OR taken_off_date > DATE_ADD(NOW(), '1 week'))
+			AND (taken_off_date IS NULL OR taken_off_date > (NOW() + '1 week'::INTERVAL))
 	`)
 	if err != nil {
 		return
@@ -73,7 +73,7 @@ func getCinema(ctx context.Context, tx pg.PGTX) (res []pgtype.UUID, err error) {
 
 func checkLastTimetable(ctx context.Context, tx pg.PGTX) (res time.Time, err error) {
 	row := tx.QueryRow(ctx, `-- ReservationCheckLastTimetable
-		SELECT finished_at FROM screens WHERE deleted_at IS NULL AND finished_at > DATE_SUBTRACT(NOW(), '1 day')
+		SELECT finished_at FROM screens WHERE deleted_at IS NULL AND finished_at > (NOW() - '1 day'::INTERVAL)
 		ORDER BY finished_at DESC LIMIT 1
 	`)
 	if err = row.Scan(&res); err != nil && err.Error() == pgx.ErrNoRows.Error() {

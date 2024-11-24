@@ -9,14 +9,15 @@ import (
 )
 
 type Config struct {
-	User    string
-	Pass    string
-	Host    string
-	Port    uint
-	Name    string
-	Schema  string
-	MaxPool uint
-	SSL     bool
+	User      string
+	Pass      string
+	Host      string
+	Port      uint
+	Name      string
+	Schema    string
+	MaxPool   uint
+	SSL       bool
+	PgBouncer bool
 }
 
 type PG struct {
@@ -53,7 +54,7 @@ func InitPGXv5(cfg Config, l ...*logger.Logger) (query *PG, err error) {
 		sslMode = "require"
 	}
 	url := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?pool_max_conns=%d&search_path=%s&sslmode=%s",
+		"postgres://%s:%s@%s:%d/%s?pool_max_conns=%d&search_path=%s&sslmode=%s&pgbouncer=%v",
 		cfg.User,
 		cfg.Pass,
 		cfg.Host,
@@ -62,6 +63,7 @@ func InitPGXv5(cfg Config, l ...*logger.Logger) (query *PG, err error) {
 		cfg.MaxPool,
 		cfg.Schema,
 		sslMode,
+		cfg.PgBouncer,
 	)
 	c, err := pgxpool.ParseConfig(url)
 	if err != nil {

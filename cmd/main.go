@@ -27,14 +27,15 @@ func main() {
 	}
 
 	db, err := pg.InitPGXv5(pg.Config{
-		Host:    viper.GetString("db.pg.host"),
-		Port:    viper.GetUint("db.pg.port"),
-		User:    viper.GetString("db.pg.user"),
-		Pass:    viper.GetString("db.pg.pass"),
-		Name:    viper.GetString("db.pg.name"),
-		Schema:  viper.GetString("db.pg.schema"),
-		MaxPool: viper.GetUint("db.pg.pool"),
-		SSL:     viper.GetBool("db.pg.ssl"),
+		Host:      viper.GetString("db.pg.host"),
+		Port:      viper.GetUint("db.pg.port"),
+		User:      viper.GetString("db.pg.user"),
+		Pass:      viper.GetString("db.pg.pass"),
+		Name:      viper.GetString("db.pg.name"),
+		Schema:    viper.GetString("db.pg.schema"),
+		MaxPool:   viper.GetUint("db.pg.pool"),
+		SSL:       viper.GetBool("db.pg.ssl"),
+		PgBouncer: viper.GetBool("db.pg.bouncer"),
 	})
 	if err != nil {
 		panic(err.Error())
