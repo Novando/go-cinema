@@ -10,16 +10,18 @@ import (
 	"github.com/novando/go-cinema/pkg/helper"
 	"github.com/novando/go-cinema/pkg/logger"
 	"github.com/novando/go-cinema/pkg/uuid"
+	"github.com/zishang520/socket.io/v2/socket"
 	"slices"
 	"time"
 )
 
 type Reservation struct {
 	reservationRepo *repository.Reservation
+	ws              *socket.Server
 }
 
-func NewReservation(rr *repository.Reservation) *Reservation {
-	return &Reservation{rr}
+func NewReservation(rr *repository.Reservation, ws *socket.Server) *Reservation {
+	return &Reservation{reservationRepo: rr, ws: ws}
 }
 
 func (s *Reservation) GetNowPlaying() (res dto.StdService) {
@@ -101,27 +103,36 @@ func (s *Reservation) Book(arg BookRequestDTO) (res dto.StdService) {
 	}
 
 	var rd repository.OrderSimpleDAO
+	price := float64(40000 * len(arg.Seats))
 	rd, res.Err = s.reservationRepo.Book(repository.BookParams{
 		ScreenID: sid,
 		Seats:    arg.Seats,
 		Name:     arg.Name,
-		Price:    float64(40000 * len(arg.Seats)),
+		Price:    price,
 	})
 	if res.Err != nil {
 		logger.Call().Errorf(res.Err.Error())
 		res.Code = fiber.StatusInternalServerError
 		return
 	}
-	if !slices.Contains([]time.Weekday{time.Sunday, time.Saturday}, rd.Start.Weekday()) {
-		return
-	}
-	res.Err = s.reservationRepo.UpdateOrderPrice(rd.ID, float64(60000*len(arg.Seats)))
-	if res.Err != nil {
-		logger.Call().Errorf(res.Err.Error())
-		res.Code = fiber.StatusInternalServerError
-		return
+	if slices.Contains([]time.Weekday{time.Sunday, time.Saturday}, rd.Start.Weekday()) {
+		price = float64(60000 * len(arg.Seats))
+		res.Err = s.reservationRepo.UpdateOrderPrice(rd.ID, price)
+		if res.Err != nil {
+			logger.Call().Errorf(res.Err.Error())
+			res.Code = fiber.StatusInternalServerError
+			return
+		}
 	}
 	res.Data = fmt.Sprintf("%x", rd.ID.Bytes)
+	s.ws.Emit("newBooking", repository.OrderDAO{
+		Price:   price,
+		OrderBy: arg.Name,
+		Title:   s.reservationRepo.GetMovieNameByID(rd.MovieID),
+		Seats:   arg.Seats,
+		Start:   rd.Start,
+		ID:      rd.ID,
+	})
 	return
 }
 
